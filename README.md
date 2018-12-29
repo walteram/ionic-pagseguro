@@ -1,9 +1,9 @@
-# ionic-pagseguro
+# ionic-pagseguro-multivendor
 
 ## Instalação
 
 ```bash
-$ npm install ionic-pagseguro --save
+$ npm install ionic-pagseguro-multivendor --save
 ```
 
 ## Consumindo a biblioteca
@@ -17,7 +17,7 @@ import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 
 // Adicione o PagSeguroModule.forRoot() no seu app.module
-import { PagSeguroComponent } from 'ionic-pagseguro';
+import { PagSeguroComponent } from 'ionic-pagseguro-multivendor';
 
 @NgModule({
   declarations: [
