@@ -22,6 +22,7 @@ export interface PagSeguroData {
         }
     }
     creditCard?: {
+        cardBrand?: string;
         cardNumber?: string;
         cvv?: string;
         expirationMonth?: string;

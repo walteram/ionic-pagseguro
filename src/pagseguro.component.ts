@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { PagSeguroService } from './pagseguro.service';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 //import * as moment from 'moment';
@@ -20,13 +20,19 @@ export class PagSeguroComponent implements OnInit {
  
   @Output() checkout:EventEmitter<string> = new EventEmitter();
 
+  @Input() acceptCard : boolean = true;
+  @Input() acceptBoleto : boolean = true;
+
+  @Input() boletoInfo1 : string = "Ao clicar em \"Efetuar pagamento\", você receberá o boleto por e-mail.";
+  @Input() boletoInfo2 : string = "Seu serviço só ficará visível publicamente, após a confirmação de pagamento do boleto.";
+
   DATE_FORMAT = 'YYYY-MM-DD';
   paymentMethods;
   private sessionId: number;
   public cardBrand: any;
   public paymentForm: FormGroup;
   public processing = false;
-  installments: any;
+  installments: any = [];
   private amountSubscription: Subscription;
   private amount: number; 
 
@@ -34,6 +40,7 @@ export class PagSeguroComponent implements OnInit {
   dateMin: string;
   expirationMonths: string[] = [];
   expirationYears: string[] = [];
+  states: string[] = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR", "RS", "SC", "SE", "SP","TO"];
 
   public myDatePickerOptions: IMyDpOptions; 
  
@@ -65,7 +72,7 @@ export class PagSeguroComponent implements OnInit {
       //this.pagSeguroService.startSession().subscribe(result => {
       this.pagSeguroService.startSession().then(response => {
         let result = response.json();
-        this.sessionId = result.session.id;
+        this.sessionId = result.id;
         PagSeguroDirectPayment.setSessionId(this.sessionId);
 
         // recupera as opçoes de pagamento
@@ -142,13 +149,14 @@ export class PagSeguroComponent implements OnInit {
   initFormBoleto() {
     this.paymentForm = this.formBuilder.group({
       paymentMethod: ['boleto'],
+      name: ['', [Validators.required]],
       cpf: ['', [Validators.required]],
       phone: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(11)]]
     });
   }
 
   paymentOptionChanged() {
-    if (this.paymentForm.value.paymentMethod === 'boleto') {
+    if (this.paymentForm.value.paymentMethod === 'boleto' || !this.acceptCard) {
       this.initFormBoleto();
     } else {
       this.initFormCard();
@@ -181,14 +189,21 @@ export class PagSeguroComponent implements OnInit {
   } 
 
   fetchInstallments() {
-    this.installments = 0;
-    this.paymentForm.patchValue({card: {installments: ''}});
+    this.installments = [];
+    var currentInstallments = this.paymentForm.value.card.installments;
+    //this.paymentForm.patchValue({card: {installments: 1}});
     if (this.cardBrand) {
-      this.pagSeguroService.getInstallments(this.amount, this.cardBrand.name, 6).then(result => {
+      this.pagSeguroService.getInstallments(this.amount, this.cardBrand.name).then(result => {
         this.installments = result.installments[this.cardBrand.name];
+        if(!currentInstallments) {
+          currentInstallments = this.installments[0].quantity;
+        }
+        else if(parseInt(this.installments[this.installments.length-1].quantity) < parseInt(currentInstallments)) {
+          currentInstallments = this.installments[this.installments.length-1].quantity
+        }
         this.paymentForm.patchValue({
           card: {
-            installments: this.installments[0].quantity
+            installments: currentInstallments
           }
         });
       }).catch(error => {

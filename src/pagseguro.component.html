@@ -12,8 +12,8 @@
 <form [formGroup]="paymentForm" class="pagseguro" *ngIf="paymentMethods" no-padding no-margin margin-top>
 <!-- <form [formGroup]="paymentForm" class="pagseguro" no-padding no-margin margin-top> -->
 
-  <h5 margin-top ion-text color="secondary">Forma de pagamento</h5>
-  <ion-segment color="primary" formControlName="paymentMethod" (ionChange)="paymentOptionChanged()">
+  <h5 *ngIf="acceptCard && acceptBoleto" margin-top ion-text color="secondary">Forma de pagamento</h5>
+  <ion-segment *ngIf="acceptCard && acceptBoleto" color="primary" formControlName="paymentMethod" (ionChange)="paymentOptionChanged()">
     <ion-segment-button value="creditCard">
       <ion-icon name="card"></ion-icon>
       <label>Cartão</label>
@@ -86,7 +86,7 @@
 
 
 
-        <ion-item *ngIf="installments">
+        <ion-item>
           <ion-label stacked>Parcelas
             <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('card').get('installments').valid && paymentForm.get('card').get('installments').touched">Campo obrigatório</ion-note>
           </ion-label>
@@ -145,13 +145,42 @@
           </ion-label>
           <ion-input type="text" maxlength="6" formControlName="number"></ion-input>
         </ion-item>
+
+        <ion-item>
+          <ion-label stacked>Bairro
+            <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('address').get('district').valid && paymentForm.get('address').get('district').touched">Campo obrigatório</ion-note>
+          </ion-label>
+          <ion-input type="text" formControlName="district"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label stacked>Cidade
+            <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('address').get('city').valid && paymentForm.get('address').get('city').touched">Campo obrigatório</ion-note>
+          </ion-label>
+          <ion-input type="text" formControlName="city"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label stacked>State
+            <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('address').get('state').valid && paymentForm.get('address').get('state').touched">Campo obrigatório</ion-note>
+          </ion-label>
+          <ion-select okText="OK" cancelText="Cancelar" formControlName="state" placeholder="Estado" [selectOptions]="{title: 'Estado'}">
+            <ion-option *ngFor="let state of states" [value]="state">{{ state }}</ion-option>
+          </ion-select>
+        </ion-item>
       </div>
 
     </div>
 
     <!-- Formulario de cartao de boleto -->
     <div *ngIf="paymentForm.value.paymentMethod == 'boleto'" padding-top>
-    <ion-item>
+      <ion-item>
+        <ion-label stacked>Nome do titular
+          <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('name').valid && paymentForm.get('name').touched">Campo obrigatório</ion-note>
+        </ion-label>
+        <ion-input type="text" formControlName="name" maxlength="32"></ion-input>
+      </ion-item>
+      <ion-item>
         <ion-label stacked>CPF do titular
           <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('cpf').valid && paymentForm.get('cpf').touched">Campo obrigatório</ion-note>
         </ion-label>
@@ -165,10 +194,10 @@
       </ion-item>
 
       <ion-item class="pagseguro-boleto">
-        <h2 ion-text color="secondary">Ao clicar em "Efetuar pagamento", você receberá o boleto por e-mail.</h2>
+        <h2 ion-text color="secondary">{{boletoInfo1}}</h2>
         <!-- <h2 ion-text color="secondary">Você também receberá o boleto por e-mail.</h2> -->
         <br/>
-        <p ion-text color="secondary">Seu serviço só ficará visível publicamente, após a confirmação de pagamento do boleto.</p>
+        <p ion-text color="secondary">{{boletoInfo2}}</p>
       </ion-item>
     </div>
 
@@ -185,7 +214,7 @@
     </ion-col>
     <ion-col right text-right>
       <button ion-button color="primary" icon-right (click)="doCheckout()" [disabled]="!paymentForm.valid || processing">
-        Efetuar pagamento
+        Enviar
       </button>
     </ion-col>
   </ion-row>

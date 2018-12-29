@@ -1,13 +1,13 @@
 {
-  "name": "ionic-pagseguro",
+  "name": "ionic-pagseguro-multivendor",
   "version": "1.0.2",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bergergit/ionic-pagseguro"
+    "url": "https://github.com/walteram/ionic-pagseguro-multivendor"
   },
   "author": {
-    "name": "Fabio Berger",
-    "email": "fabioberger@gmail.com"
+    "name": "Walter Amorim",
+    "email": "amorimwalter@gmail.com"
   },
   "keywords": [
     "angular",
@@ -16,12 +16,12 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/bergergit/ionic-pagseguro/issues"
+    "url": "https://github.com/wamorim/ionic-pagseguro-multivendor/issues"
   },
-  "main": "ionic-pagseguro.umd.js",
-  "module": "ionic-pagseguro.js",
-  "jsnext:main": "ionic-pagseguro.js",
-  "typings": "ionic-pagseguro.d.ts",
+  "main": "ionic-pagseguro-multivendor.umd.js",
+  "module": "ionic-pagseguro-multivendor.js",
+  "jsnext:main": "ionic-pagseguro-multivendor.js",
+  "typings": "ionic-pagseguro-multivendor.d.ts",
   "peerDependencies": {
     "@angular/common": "^5.0.1",
     "@angular/compiler": "^5.0.1",

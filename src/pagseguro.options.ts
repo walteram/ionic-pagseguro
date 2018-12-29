@@ -5,5 +5,6 @@ export interface PagSeguroOptions  {
     remoteApi: {                    // URLs de configuração da sua API remota
         sessionURL: string;        // URL que irá iniciar sessao com PagSeguro
         checkoutURL: string;       // URL que irá completar o pagamento com o PagSeguro
-    }
+    },
+    maxInstallmentNoInterest: number
 } 

@@ -18,18 +18,16 @@ declare var PagSeguroDirectPayment: any;
 @Injectable() 
 export class PagSeguroService {
 
-  //private ZIP_URL = 'https://viacep.com.br/ws';
-  private ZIP_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
+  private ZIP_URL = 'https://viacep.com.br/ws';
 
   private scriptLoaded: boolean;
   private options: PagSeguroOptions;
   public creditCardHash;
   private checkoutData: PagSeguroData;
   private paymentForm: FormGroup;
-  private apiKey: string;
   private amountSource: BehaviorSubject<number>;
   public amount$: Observable<number>;
-  private maxInstallmentNoInterest: number;
+  protected cardBrand: string;
   installments: any;
 
   constructor(private http: Http, public platform: Platform) {
@@ -116,14 +114,13 @@ export class PagSeguroService {
     return promise;
   }
 
-  public getInstallments(amount: number, brand: string, maxInstallmentNoInterest: number): Promise<any> {
-    this.maxInstallmentNoInterest = maxInstallmentNoInterest;
+  public getInstallments(amount: number, brand: string): Promise<any> {
     var that = this;
     var promise = new Promise((resolve, reject) => {
       PagSeguroDirectPayment.getInstallments({
         amount: amount,
         brand: brand,
-        maxInstallmentNoInterest: maxInstallmentNoInterest,
+        maxInstallmentNoInterest: this.options.maxInstallmentNoInterest,
         success: function (response) {
           that.installments = response.installments[brand];
           resolve(response);
@@ -142,10 +139,12 @@ export class PagSeguroService {
    * Recupera a bandeira do cartão através dos 6 primeiros numeros do cartão (PIN)
    */
   public getCardBrand(pin: string): Promise<any> {
+    let _this = this;
     var promise = new Promise((resolve, reject) => {
       PagSeguroDirectPayment.getBrand({
         cardBin: pin,
         success: function (response) {
+          _this.cardBrand = response.brand.name;
           resolve(response);
         },
         error: function (response) {
@@ -160,6 +159,10 @@ export class PagSeguroService {
     this.checkoutData = null;
   }
 
+
+  public getCheckoutData() {
+    return this.checkoutData;
+  }
 
   /**
    * Use esta função para definir os itens e valores que devem entrar no checkout do PagSeguro
@@ -196,10 +199,20 @@ export class PagSeguroService {
             phone: this.checkoutData.sender.phone.areaCode + this.checkoutData.sender.phone.number
           })
         }
+
       }
 
-      if (this.checkoutData && this.checkoutData.creditCard && this.checkoutData.creditCard.billingAddress) {
-        this.patchAddress(this.checkoutData.creditCard.billingAddress, true);
+      if (this.checkoutData && this.checkoutData.creditCard) {
+        if (this.checkoutData.creditCard.billingAddress)
+        {
+          this.patchAddress(this.checkoutData.creditCard.billingAddress, true);
+        }
+
+        if (this.checkoutData.creditCard.holder && this.checkoutData.creditCard.holder.birthDate && this.paymentForm && (!this.paymentForm.value.ionBirthDate || this.paymentForm.value.ionBirthDate === '2000-01-01')) {
+          this.paymentForm.patchValue({
+            ionBirthDate: this.checkoutData.creditCard.holder.birthDate
+          })
+        }
       }
     }
 
@@ -256,6 +269,7 @@ export class PagSeguroService {
       }, 
 
       sender: {
+        name: this.paymentForm.value.name,
         phone: {
           areaCode: this.paymentForm.value.phone.substring(0, 2),
           number: this.paymentForm.value.phone.substring(2)
@@ -272,6 +286,7 @@ export class PagSeguroService {
     if (this.paymentForm.value.paymentMethod == 'creditCard') {
       let cardData: PagSeguroData = {
         creditCard: {
+          cardBrand: this.cardBrand,
           cardNumber: this.paymentForm.value.card.cardNumber,
           cvv: this.paymentForm.value.card.cvv,
           expirationMonth: this.paymentForm.value.card.month,
@@ -279,7 +294,7 @@ export class PagSeguroService {
           billingAddress: this.paymentForm.value.address,
           installment: {
             quantity: this.paymentForm.value.card.installments,
-            noInterestInstallmentQuantity: this.maxInstallmentNoInterest,
+            noInterestInstallmentQuantity: this.options.maxInstallmentNoInterest,
             value: this.getAmountForInstallmentQuantity(this.paymentForm.value.card.installments)
           },
           holder: {
@@ -313,29 +328,36 @@ export class PagSeguroService {
    * 
    * @param data 
    */
-  public checkout(): Promise<any> {
+  public checkout(sendData: boolean = true): Promise<any> {
     let data: PagSeguroData = this.buildPagSeguroData();
     
-    if (this.paymentForm && this.paymentForm.value.card && this.paymentForm.value.card.name) {
-      data.sender.name = this.paymentForm.value.card.name;
-    } else {
+    if (this.paymentForm) {
+      if (this.paymentForm.value.card && this.paymentForm.value.card.name) {
+        data.sender.name = this.paymentForm.value.card.name;
+      }
+      else if(this.paymentForm.value.name) {
+        data.sender.name = this.paymentForm.value.name;
+      }
+      else {
+        data.sender.name = this.checkoutData.sender.name;
+      }
+    }
+    else {
       data.sender.name = this.checkoutData.sender.name;
     }
 
     data.sender.email = this.checkoutData.sender.email;
-    
 
     console.debug('built data',  data);
     console.debug('checkoutData',  data);
 
     data = Object.assign(this.checkoutData, data);
 
-    
-
     console.debug('built checkoutData after mix',  data);
 
     if (data.method === 'creditCard') {
-      //data.sender.documents = data.creditCard.holder.documents;
+      data.creditCard.installment.quantity = this.paymentForm.value.card.installments;
+
       // recupera o token do cartao de crédito
       data.sender.hash = PagSeguroDirectPayment.getSenderHash();
       return this.createCardToken(data).then(result => {
@@ -347,11 +369,21 @@ export class PagSeguroService {
         delete (data.creditCard.expirationMonth);
         delete (data.creditCard.expirationYear);
 
-        return this._checkout(data);
+        if(sendData) {
+          return this._checkout(data);
+        }
+        else {
+          return new Promise<any>((resolve) => resolve(data));
+        }
       });
     } else {
       data.sender.hash = PagSeguroDirectPayment.getSenderHash();
-      return this._checkout(data);
+      if(sendData) {
+        return this._checkout(data);
+      }
+      else {
+        return new Promise<any>((resolve) => resolve(data));
+      }
     }
   }
 
@@ -394,50 +426,18 @@ export class PagSeguroService {
   }
 
   /**
-   * Tenta extrair o tipo de campo, a partir de um resultado do Google API
-   * https://developers.google.com/maps/documentation/geocoding/intro
-   * 
-   * @param results 
-   */
-  public extractField(field: string, results) {
-    for (let i = 0; i < results.address_components.length; i++) {
-      let addressComponent = results.address_components[i];
-      if (addressComponent.types && addressComponent.types.indexOf(field) !== -1) {
-        return addressComponent.short_name;
-      }
-    }
-    return '';
-  }
-
-  /**
    * Fetches zip code information. (works for Brazil)
    * @param zip 
    */
-  public fetchZip(zip: string, addToCheckoutData: boolean): Promise<any> {
-    //return this.httpClient.get<any>(`${this.ZIP_URL}/${zip}/json`).retry(2);
-    //return this.http.get(`${this.ZIP_URL}/${zip}/json`).toPromise();
-    let addressPromise = this.http.get(`${this.ZIP_URL}?address=${zip}&language=pt-BR&region=br&key=${this.apiKey}`).map((res) => res.json()).toPromise();
-    addressPromise.then((info) => {
-      if (addToCheckoutData && info.results && info.results[0]) {
-        //this.pagSeguroService.addCheckoutData(this.pagSeguroService.matchAddress(info.results[0]));
-        this.matchAddress(info.results[0]);
-      }
-    });
-
-    return addressPromise;
-  }
-
-  public fetchLatLong(location): Promise<any> {
-    //return this.httpClient.get<any>(`${this.ZIP_URL}/${zip}/json`).retry(2);
-    //return this.http.get(`${this.ZIP_URL}/${zip}/json`).toPromise();
-    return this.http.get(`${this.ZIP_URL}?latlng=${location.lat},${location.lng}&language=pt-BR&key=${this.apiKey}`).map((res) => res.json()).toPromise();
-  }
-
-  /**
-   * Permite que o cliente defina a API KEY do Google
-   */
-  public setApiKey(apiKey: string) {
-    this.apiKey = apiKey;
+  public fetchZip(zip: string, addToCheckoutData: boolean) {
+    this.http.get(`${this.ZIP_URL}/${zip}/json`)
+                  .map(res => res.json())
+                  .subscribe(data => {
+                    if(data.erro === true){
+                      return;
+                    }
+                    this.matchAddress(data);
+                  });  
   }
 
   /**
@@ -445,37 +445,23 @@ export class PagSeguroService {
    * @param address
    */
   public matchAddress(address: any) {
-    if (address) {
-      this.fetchLatLong(address.geometry.location).then(detailedAddressResult => {
-        let detailedAddress = detailedAddressResult.results && detailedAddressResult.results[0] || null;
-
-        let addressData: PagSeguroData = {
-          creditCard: {
-            billingAddress: {
-              // state: address.uf,
-              // country: 'BRA',
-              // postalCode: address && address.cep ? address.cep.replace('-', '') : '',
-              // number: '',
-              // city: address.localidade,
-              // street: address.logradouro,
-              // district: address.bairro 
-
-              state: this.extractField('administrative_area_level_1', address),
-              country: 'BRA',
-              postalCode: this.extractField('postal_code', address).replace('-', ''),
-              number: '',
-              city: this.extractField('administrative_area_level_2', address),
-              street: detailedAddress ? this.extractField('route', detailedAddress) : '',
-              district: this.extractField('sublocality_level_1', address)
-            }
-          }
-        }
-        this.addCheckoutData(addressData);
-        //return addressData;
-      });
+    if(!address || address.erro === true) {
+      return;
     }
-    //return null;
-
+    let addressData: PagSeguroData = {
+      creditCard: {
+        billingAddress: {
+          state: address.uf,
+          country: 'BRA',
+          postalCode: address && address.cep ? address.cep.replace('-', '') : '',
+          number: '',
+          city: address.localidade,
+          street: address.logradouro,
+          district: address.bairro 
+        }
+      }
+    }
+    this.addCheckoutData(addressData);
   }
 
 }

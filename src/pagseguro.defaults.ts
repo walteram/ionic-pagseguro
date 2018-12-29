@@ -7,6 +7,7 @@ export const PagSeguroDefaultOptions: PagSeguroOptions = {
     remoteApi: {
         sessionURL: null,
         checkoutURL: null
-    }
+    },
+    maxInstallmentNoInterest: 6
 
 }
