@@ -10,21 +10,17 @@
 </ion-row>
 
 <form [formGroup]="paymentForm" class="pagseguro" *ngIf="paymentMethods" no-padding no-margin margin-top>
-<!-- <form [formGroup]="paymentForm" class="pagseguro" no-padding no-margin margin-top> -->
 
   <h5 *ngIf="acceptCard && acceptBoleto" margin-top ion-text color="secondary">Forma de pagamento</h5>
   <ion-segment *ngIf="acceptCard && acceptBoleto" color="primary" formControlName="paymentMethod" (ionChange)="paymentOptionChanged()">
-    <ion-segment-button value="creditCard">
-      <ion-icon name="card"></ion-icon>
-      <label>Cartão</label>
-    </ion-segment-button>
     <ion-segment-button value="boleto">
       <ion-icon name="barcode"></ion-icon>
       <label>Boleto</label>
     </ion-segment-button>
-    <!-- <ion-segment-button value="debito">
-          <ion-icon ios="ios-at-outline" md="md-at"></ion-icon>
-        </ion-segment-button> -->
+    <ion-segment-button value="creditCard">
+      <ion-icon name="card"></ion-icon>
+      <label>Cartão</label>
+    </ion-segment-button>
   </ion-segment>
 
   <ion-list no-padding no-margin padding-top>
@@ -161,7 +157,7 @@
         </ion-item>
 
         <ion-item>
-          <ion-label stacked>State
+          <ion-label stacked>Estado
             <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('address').get('state').valid && paymentForm.get('address').get('state').touched">Campo obrigatório</ion-note>
           </ion-label>
           <ion-select okText="OK" cancelText="Cancelar" formControlName="state" placeholder="Estado" [selectOptions]="{title: 'Estado'}">
@@ -174,19 +170,19 @@
 
     <!-- Formulario de cartao de boleto -->
     <div *ngIf="paymentForm.value.paymentMethod == 'boleto'" padding-top>
-      <ion-item>
+      <ion-item *ngIf="requireBoletoHolder" >
         <ion-label stacked>Nome do titular
           <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('name').valid && paymentForm.get('name').touched">Campo obrigatório</ion-note>
         </ion-label>
         <ion-input type="text" formControlName="name" maxlength="32"></ion-input>
       </ion-item>
-      <ion-item>
+      <ion-item *ngIf="requireBoletoHolder">
         <ion-label stacked>CPF do titular
           <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('cpf').valid && paymentForm.get('cpf').touched">Campo obrigatório</ion-note>
         </ion-label>
         <ion-input type="tel" formControlName="cpf" maxlength="11"></ion-input>
       </ion-item>
-      <ion-item>
+      <ion-item *ngIf="requireBoletoHolder">
         <ion-label stacked>Digite seu telefone
           <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('phone').valid && paymentForm.get('phone').touched">Número inválido</ion-note>
         </ion-label>
@@ -194,10 +190,9 @@
       </ion-item>
 
       <ion-item class="pagseguro-boleto">
-        <h2 ion-text color="secondary">{{boletoInfo1}}</h2>
-        <!-- <h2 ion-text color="secondary">Você também receberá o boleto por e-mail.</h2> -->
-        <br/>
-        <p ion-text color="secondary">{{boletoInfo2}}</p>
+        <h2 *ngIf="boletoInfo1" ion-text color="secondary">{{boletoInfo1}}</h2>
+        <br *ngIf="boletoInfo1 && boletoInfo2"/>
+        <p *ngIf="boletoInfo2" ion-text color="secondary">{{boletoInfo2}}</p>
       </ion-item>
     </div>
 

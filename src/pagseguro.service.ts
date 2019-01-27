@@ -271,13 +271,13 @@ export class PagSeguroService {
       sender: {
         name: this.paymentForm.value.name,
         phone: {
-          areaCode: this.paymentForm.value.phone.substring(0, 2),
-          number: this.paymentForm.value.phone.substring(2)
+          areaCode: this.paymentForm.value.phone ? this.paymentForm.value.phone.substring(0, 2) : null,
+          number: this.paymentForm.value.phone ? this.paymentForm.value.phone.substring(2) : null
         },
         documents: {
           document: {
             type: 'CPF',
-            value: this.paymentForm.value.cpf || this.paymentForm.value.card.cpf
+            value: this.paymentForm.value.cpf || (this.paymentForm.value.card ? this.paymentForm.value.card.cpf : null)
           }
         }
       }
@@ -306,8 +306,8 @@ export class PagSeguroService {
               }
             },
             phone: {
-              areaCode: this.paymentForm.value.phone.substring(0, 2),
-              number: this.paymentForm.value.phone.substring(2)
+              areaCode: this.paymentForm.value.phone ? this.paymentForm.value.phone.substring(0, 2) : null,
+              number: this.paymentForm.value.phone ? this.paymentForm.value.phone.substring(2) : null
             },
             birthDate: this.convertIsoDate()
           }
