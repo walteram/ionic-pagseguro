@@ -2,8 +2,6 @@ import { Injectable } from '@angular/core';
 import { PagSeguroDefaultOptions } from './pagseguro.defaults';
 import { RequestOptions, Http, Headers } from '@angular/http';
 import { PagSeguroOptions } from './pagseguro.options';
-//import { Observable } from "rxjs/Observable";
-
 import { PagSeguroData } from './pagseguro.data';
 import { FormGroup } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
@@ -12,7 +10,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/toPromise';
 import { Observable } from 'rxjs/Observable';
 import { Platform } from 'ionic-angular';
- 
+
 declare var PagSeguroDirectPayment: any;
 
 @Injectable() 
@@ -208,7 +206,7 @@ export class PagSeguroService {
           this.patchAddress(this.checkoutData.creditCard.billingAddress, true);
         }
 
-        if (this.checkoutData.creditCard.holder && this.checkoutData.creditCard.holder.birthDate && this.paymentForm && (!this.paymentForm.value.ionBirthDate || this.paymentForm.value.ionBirthDate === '2000-01-01')) {
+        if (this.checkoutData.creditCard.holder && this.checkoutData.creditCard.holder.birthDate && this.paymentForm && (!this.paymentForm.value.ionBirthDate || this.paymentForm.value.ionBirthDate.endsWith('-01-01'))) {
           this.paymentForm.patchValue({
             ionBirthDate: this.checkoutData.creditCard.holder.birthDate
           })
