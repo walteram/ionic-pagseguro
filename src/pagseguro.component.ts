@@ -1,23 +1,21 @@
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { PagSeguroService } from './pagseguro.service';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-//import * as moment from 'moment';
 import moment from 'moment';
 import { Subscription } from 'rxjs/Subscription';
-//import { Utils } from './utils';
 import { IMyDpOptions } from 'mydatepicker';
 import { Platform } from 'ionic-angular';
 import { IMyDate } from 'mydatepicker';
 
-declare var PagSeguroDirectPayment: any; 
-  
+declare var PagSeguroDirectPayment: any;
+
 @Component({
   selector: 'pagseguro-component',
   templateUrl: 'pagseguro.component.html',
   styleUrls: ['pagseguro.style.css']
-}) 
+})
 export class PagSeguroComponent implements OnInit {
- 
+
   @Output() checkout:EventEmitter<string> = new EventEmitter();
   @Output() paymentMethodChanged:EventEmitter<string> = new EventEmitter();
 
@@ -37,7 +35,7 @@ export class PagSeguroComponent implements OnInit {
   public processing = false;
   installments: any = [];
   private amountSubscription: Subscription;
-  private amount: number; 
+  private amount: number;
 
   dateMax: string;
   dateMin: string;
@@ -45,8 +43,8 @@ export class PagSeguroComponent implements OnInit {
   expirationYears: string[] = [];
   states: string[] = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR", "RS", "SC", "SE", "SP","TO"];
 
-  public myDatePickerOptions: IMyDpOptions; 
- 
+  public myDatePickerOptions: IMyDpOptions;
+
   constructor(private pagSeguroService: PagSeguroService, private formBuilder: FormBuilder, public platform: Platform) {
 
     this.dateMin = moment().format(this.DATE_FORMAT);
@@ -58,14 +56,14 @@ export class PagSeguroComponent implements OnInit {
       openSelectorOnInputClick: true,
       showClearDateBtn: false,
     }
-  }   
+  }
 
   ngOnInit() {
     if(this.defaultMethod === 'boleto') {
-      this.initFormBoleto(); 
+      this.initFormBoleto();
     }
     else {
-      this.initFormCard(); 
+      this.initFormCard();
     }
     this.initExpirationDates();
     this.pagSeguroService.setForm(this.paymentForm);
@@ -73,7 +71,7 @@ export class PagSeguroComponent implements OnInit {
     this.amountSubscription = this.pagSeguroService.amount$.subscribe(amount => {
       this.amount = amount;
       this.fetchInstallments();
-    }); 
+    });
 
     // carrega o .js do PagSeguro
     this.pagSeguroService.loadScript().then(_ => {
@@ -95,7 +93,7 @@ export class PagSeguroComponent implements OnInit {
       });
     });
   }
- 
+
   ngOnDestroy() {
     if (this.amountSubscription) {
       this.amountSubscription.unsubscribe();
@@ -143,7 +141,7 @@ export class PagSeguroComponent implements OnInit {
         street: ['', [Validators.required]],
         district: ['']
       }),
-      phone: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(11)]],
+      phone: ['', [Validators.required, Validators.minLength(13), Validators.maxLength(15)]],
       ionBirthDate: [moment().subtract(18, 'years').month(0).date(1).format(this.DATE_FORMAT)],
       mydpBirthdate: [{ date: this.convertToDatePicker(moment().subtract(18, 'years').month(0).date(1)) }]
     });
@@ -160,7 +158,7 @@ export class PagSeguroComponent implements OnInit {
         paymentMethod: ['boleto'],
         name: ['', [Validators.required]],
         cpf: ['', [Validators.required]],
-        phone: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(11)]]
+        phone: ['', [Validators.required, Validators.minLength(13), Validators.maxLength(15)]]
       });
     }
     else {
@@ -186,8 +184,8 @@ export class PagSeguroComponent implements OnInit {
 
   initializeComponent() {
     this.pagSeguroService.loadScript();
-  } 
- 
+  }
+
   /**
    * Recupera a bandeira do cartão, ao se digitar os primeiros 6 numeros
    */
@@ -204,7 +202,7 @@ export class PagSeguroComponent implements OnInit {
     } else {
       this.cardBrand = null;
     }
-  } 
+  }
 
   fetchInstallments() {
     this.installments = [];
@@ -250,7 +248,7 @@ export class PagSeguroComponent implements OnInit {
       return this.paymentMethods.CREDIT_CARD.options[this.cardBrand.name.toUpperCase()].displayName;
     } else {
       return '';
-    }  
+    }
   }
 
   /**
@@ -262,14 +260,14 @@ export class PagSeguroComponent implements OnInit {
     if (this.checkout) {
       this.checkout.emit('checkout');
       this.processing = false;
-    } 
+    }
   }
 
   fetchZip(zip) {
     this.pagSeguroService.fetchZip(zip, true);
   }
 
-  
+
 
 
 }

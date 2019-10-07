@@ -1,6 +1,6 @@
 {
   "name": "ionic-pagseguro-multivendor",
-  "version": "1.0.6",
+  "version": "1.0.9",
   "scripts": {
     "build": "gulp build",
     "build:watch": "gulp",
@@ -75,6 +75,7 @@
     "zone.js": "^0.8.14"
   },
   "dependencies": {
+    "brmasker-ionic-3": "^1.0.8",
     "moment": "^2.19.1",
     "mydatepicker": "^2.5.2"
   },

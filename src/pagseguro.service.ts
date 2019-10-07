@@ -13,7 +13,7 @@ import { Platform } from 'ionic-angular';
 
 declare var PagSeguroDirectPayment: any;
 
-@Injectable() 
+@Injectable()
 export class PagSeguroService {
 
   private ZIP_URL = 'https://viacep.com.br/ws';
@@ -93,7 +93,7 @@ export class PagSeguroService {
   }
 
   /**
-   * Recupera as opções de pagamento. 
+   * Recupera as opções de pagamento.
    * Esta funcção deve ser chamada após já termos iniciado a sessão, pelo startSession()
    */
   public getPaymentMethods(amount: number): Promise<any> {
@@ -164,7 +164,7 @@ export class PagSeguroService {
 
   /**
    * Use esta função para definir os itens e valores que devem entrar no checkout do PagSeguro
-   * @param data 
+   * @param data
    */
   public addCheckoutData(data: PagSeguroData, skipPatchForm?: boolean) {
     this.checkoutData = Object.assign(this.checkoutData || {}, data);
@@ -231,7 +231,7 @@ export class PagSeguroService {
 
   /**
    * Converte do formato ISO (yyyy-MM-dd) para o formato do PagSeguro que é: dd/MM/yyyy
-   * @param isoDate 
+   * @param isoDate
    */
   private convertIsoDate(): string {
     if (this.platform.is('core')) {
@@ -254,23 +254,25 @@ export class PagSeguroService {
       if (this.installments[i].quantity == quantity) return this.installments[i].installmentAmount.toFixed(2);
     }
     return '0.00';
-  } 
+  }
 
-  /**  
+  /**
    * Monta o objeto necessário para a API do PagSeguro
    */
   buildPagSeguroData(): PagSeguroData {
+    const phone = (this.paymentForm && this.paymentForm.value && this.paymentForm.value.phone || '')
+        .replace('(', '').replace(')', '').replace('-', '').replace('+', '').replace(' ', '');
     let data: PagSeguroData = {
       method: this.paymentForm.value.paymentMethod,
       shipping: {
         addressRequired: false
-      }, 
+      },
 
       sender: {
         name: this.paymentForm.value.name,
         phone: {
-          areaCode: this.paymentForm.value.phone ? this.paymentForm.value.phone.substring(0, 2) : null,
-          number: this.paymentForm.value.phone ? this.paymentForm.value.phone.substring(2) : null
+          areaCode: phone ? phone.substring(0, 2) : null,
+          number: phone ? phone.substring(2) : null
         },
         documents: {
           document: {
@@ -304,8 +306,8 @@ export class PagSeguroService {
               }
             },
             phone: {
-              areaCode: this.paymentForm.value.phone ? this.paymentForm.value.phone.substring(0, 2) : null,
-              number: this.paymentForm.value.phone ? this.paymentForm.value.phone.substring(2) : null
+              areaCode: phone ? phone.substring(0, 2) : null,
+              number: phone ? phone.substring(2) : null
             },
             birthDate: this.convertIsoDate()
           }
@@ -314,7 +316,7 @@ export class PagSeguroService {
 
       data = Object.assign(data, cardData);
     }
-    
+
     return data;
   }
 
@@ -323,12 +325,12 @@ export class PagSeguroService {
   /**
    * Função que realiza o pagamento com o PagSeguro.
    * Ela irá passar os dados resgatados, para uma Firebase Functio, que irá concluir o processo
-   * 
-   * @param data 
+   *
+   * @param data
    */
   public checkout(sendData: boolean = true): Promise<any> {
     let data: PagSeguroData = this.buildPagSeguroData();
-    
+
     if (this.paymentForm) {
       if (this.paymentForm.value.card && this.paymentForm.value.card.name) {
         data.sender.name = this.paymentForm.value.card.name;
@@ -399,11 +401,11 @@ export class PagSeguroService {
     let requestOptions = new RequestOptions({ headers: headers });
 
     return this.http.post(this.options.remoteApi.checkoutURL, JSON.stringify(data), requestOptions).toPromise();
-  } 
+  }
 
   /**
    * Cria um Token para o cartão de crédito informado
-   * @param data 
+   * @param data
    */
   public createCardToken(data: PagSeguroData): Promise<any> {
     var promise = new Promise((resolve, reject) => {
@@ -414,7 +416,7 @@ export class PagSeguroService {
         expirationYear: data.creditCard.expirationYear,
         success: function (response) {
           resolve(response);
-        }, 
+        },
         error: function (response) {
           reject(response);
         }
@@ -425,7 +427,7 @@ export class PagSeguroService {
 
   /**
    * Fetches zip code information. (works for Brazil)
-   * @param zip 
+   * @param zip
    */
   public fetchZip(zip: string, addToCheckoutData: boolean) {
     this.http.get(`${this.ZIP_URL}/${zip}/json`)
@@ -435,7 +437,7 @@ export class PagSeguroService {
                       return;
                     }
                     this.matchAddress(data);
-                  });  
+                  });
   }
 
   /**
@@ -455,7 +457,7 @@ export class PagSeguroService {
           number: '',
           city: address.localidade,
           street: address.logradouro,
-          district: address.bairro 
+          district: address.bairro
         }
       }
     }

@@ -54,12 +54,12 @@
               </ion-label>
               <!-- <ion-input type="text" formControlName="month" placeholder="Mês"></ion-input> -->
               <!-- <ion-datetime displayFormat="MM/YYYY" [max]="dateMax" [min]="dateMin" doneText="OK" cancelText="Cancelar" formControlName="validity"></ion-datetime> -->
-              <ion-select okText="OK" cancelText="Cancelar" formControlName="month" placeholder="Mês" [selectOptions]="{title: 'Mês'}"> 
+              <ion-select okText="OK" cancelText="Cancelar" formControlName="month" placeholder="Mês" [selectOptions]="{title: 'Mês'}">
                 <ion-option *ngFor="let month of expirationMonths" [value]="month">{{ month }}</ion-option>
               </ion-select>
             </ion-item>
           </ion-col>
-          <ion-col no-padding col-lg-4 col-6> 
+          <ion-col no-padding col-lg-4 col-6>
             <ion-item>
               <ion-label stacked>&nbsp;
                 <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('card').get('year').valid && paymentForm.get('card').get('year').touched">Ano obrigatório</ion-note>
@@ -105,17 +105,17 @@
           <!-- <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('birthDate').valid && paymentForm.get('birthDate').touched">Campo obrigatório</ion-note> -->
         </ion-label>
         <ion-datetime displayFormat="DD/MM/YYYY" max="2018-12-31" min="1920-01-01" doneText="OK" cancelText="Cancelar" formControlName="ionBirthDate" hideWhen="core"></ion-datetime>
-        
+
       </ion-item>
       <ion-item class="small-datepicker overflow" showWhen="core">
-          <my-date-picker formControlName="mydpBirthdate" [options]="myDatePickerOptions" locale="pt-br"></my-date-picker>    
+          <my-date-picker formControlName="mydpBirthdate" [options]="myDatePickerOptions" locale="pt-br"></my-date-picker>
       </ion-item>
 
       <ion-item>
         <ion-label stacked>Telefone do titular
           <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('phone').valid && paymentForm.get('phone').touched">Número inválido</ion-note>
         </ion-label>
-        <ion-input type="tel" formControlName="phone" maxlength="11"></ion-input>
+        <ion-input type="tel" [brmasker]="{phone: true}" placeholder="(99) 99999-1234" formControlName="phone" maxlength="15"></ion-input>
       </ion-item>
 
       <h6 no-margin no-margin margin-top ion-text color="secondary">Endereço do titular do cartão</h6>
@@ -125,7 +125,7 @@
           <ion-label stacked>CEP
             <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('address').get('postalCode').valid && paymentForm.get('address').get('postalCode').touched">Campo inválido</ion-note>
           </ion-label>
-          <ion-input type="tel" maxlength="8" formControlName="postalCode" [attr.maxlength]="8" (change)="fetchZip(paymentForm.value.address.postalCode)"></ion-input>
+          <ion-input type="tel" maxlength="8" formControlName="postalCode" (change)="fetchZip(paymentForm.value.address.postalCode)"></ion-input>
         </ion-item>
 
         <ion-item>
@@ -186,7 +186,7 @@
         <ion-label stacked>Digite seu telefone
           <ion-note margin-left ion-text color="danger" *ngIf="!paymentForm.get('phone').valid && paymentForm.get('phone').touched">Número inválido</ion-note>
         </ion-label>
-        <ion-input type="tel" maxlength="11" formControlName="phone"></ion-input>
+        <ion-input type="tel" [brmasker]="{phone: true}" placeholder="(99) 99999-1234" formControlName="phone" maxlength="15"></ion-input>
       </ion-item>
 
       <ion-item class="pagseguro-boleto">
