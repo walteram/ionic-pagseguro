@@ -62,7 +62,7 @@ export class PagSeguroService {
    * Carrega o <script> do PagSeguro no HEAD do documento
    */
   public loadScript(): Promise<any> {
-    var promise = new Promise((resolve) => {
+    let promise = new Promise((resolve) => {
       if (this.options.loadScript && !this.scriptLoaded) {
         let script: HTMLScriptElement = document.createElement('script');
         script.addEventListener('load', r => resolve());
@@ -97,7 +97,7 @@ export class PagSeguroService {
    * Esta funcção deve ser chamada após já termos iniciado a sessão, pelo startSession()
    */
   public getPaymentMethods(amount: number): Promise<any> {
-    var promise = new Promise((resolve, reject) => {
+    let promise = new Promise((resolve, reject) => {
       // recupera as opçoes de pagamento através da API Javscript do PagSeguro
       PagSeguroDirectPayment.getPaymentMethods({
         amount: amount,
@@ -113,8 +113,8 @@ export class PagSeguroService {
   }
 
   public getInstallments(amount: number, brand: string): Promise<any> {
-    var that = this;
-    var promise = new Promise((resolve, reject) => {
+    let that = this;
+    let promise = new Promise((resolve, reject) => {
       PagSeguroDirectPayment.getInstallments({
         amount: amount,
         brand: brand,
@@ -138,7 +138,7 @@ export class PagSeguroService {
    */
   public getCardBrand(pin: string): Promise<any> {
     let _this = this;
-    var promise = new Promise((resolve, reject) => {
+    let promise = new Promise((resolve, reject) => {
       PagSeguroDirectPayment.getBrand({
         cardBin: pin,
         success: function (response) {
@@ -193,9 +193,15 @@ export class PagSeguroService {
 
 
         if (this.checkoutData.sender.phone && !this.paymentForm.value.phone) {
+          let phone = this.checkoutData.sender.phone.number;
+          if (phone.length >= 9) {
+            phone = phone.substr(0, 5) + '-' + phone.substr(5);
+          } else if (phone.length >= 5) {
+            phone = phone.substr(0, 4) + '-' + phone.substr(4);
+          }
           this.paymentForm.patchValue({
-            phone: this.checkoutData.sender.phone.areaCode + this.checkoutData.sender.phone.number
-          })
+            phone: `(${this.checkoutData.sender.phone.areaCode}) ${phone}`,
+          });
         }
 
       }
@@ -238,7 +244,7 @@ export class PagSeguroService {
       return this.paymentForm.value.mydpBirthdate.formatted;
     } else {
       let isoDate = this.paymentForm.value.ionBirthDate;
-      var ptrn = /(\d{4})\-(\d{2})\-(\d{2})/;
+      let ptrn = /(\d{4})\-(\d{2})\-(\d{2})/;
       if (!isoDate || !isoDate.match(ptrn)) {
         return null;
       }
@@ -328,14 +334,14 @@ export class PagSeguroService {
    *
    * @param data
    */
-  public checkout(sendData: boolean = true): Promise<any> {
+  public checkout(sendData = true): Promise<any> {
     let data: PagSeguroData = this.buildPagSeguroData();
 
     if (this.paymentForm) {
       if (this.paymentForm.value.card && this.paymentForm.value.card.name) {
         data.sender.name = this.paymentForm.value.card.name;
       }
-      else if(this.paymentForm.value.name) {
+      else if (this.paymentForm.value.name) {
         data.sender.name = this.paymentForm.value.name;
       }
       else {
@@ -369,7 +375,7 @@ export class PagSeguroService {
         delete (data.creditCard.expirationMonth);
         delete (data.creditCard.expirationYear);
 
-        if(sendData) {
+        if (sendData) {
           return this._checkout(data);
         }
         else {
@@ -378,7 +384,7 @@ export class PagSeguroService {
       });
     } else {
       data.sender.hash = PagSeguroDirectPayment.getSenderHash();
-      if(sendData) {
+      if (sendData) {
         return this._checkout(data);
       }
       else {
@@ -394,7 +400,7 @@ export class PagSeguroService {
    */
   private _checkout(data: PagSeguroData): Promise<any> {
     console.debug('invocando a API com os dados.', data);
-    var headers = new Headers();
+    let headers = new Headers();
     headers.append('Content-Type', 'application/json');
     if (data.token) headers.append('Authorization', 'Bearer ' + data.token);
 
@@ -408,7 +414,7 @@ export class PagSeguroService {
    * @param data
    */
   public createCardToken(data: PagSeguroData): Promise<any> {
-    var promise = new Promise((resolve, reject) => {
+    let promise = new Promise((resolve, reject) => {
       PagSeguroDirectPayment.createCardToken({
         cardNumber: data.creditCard.cardNumber,
         cvv: data.creditCard.cvv,
@@ -433,7 +439,7 @@ export class PagSeguroService {
     this.http.get(`${this.ZIP_URL}/${zip}/json`)
                   .map(res => res.json())
                   .subscribe(data => {
-                    if(data.erro === true){
+                    if (data.erro === true){
                       return;
                     }
                     this.matchAddress(data);
@@ -445,7 +451,7 @@ export class PagSeguroService {
    * @param address
    */
   public matchAddress(address: any) {
-    if(!address || address.erro === true) {
+    if (!address || address.erro === true) {
       return;
     }
     let addressData: PagSeguroData = {
